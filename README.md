@@ -1,10 +1,9 @@
-# Model Context Protocol (MCP)
+# Model Context Protocol (MCP) 
+  * based on <a href="https://github.com/microsoft/mcp-for-beginners">mcp-for-beginners</a>
 
 * https://github.com/modelcontextprotocol/servers
 * https://modelcontextprotocol.io/docs/getting-started/intro
-* https://docs.github.com/en/copilot/how-tos/provide-context/use-mcp/use-the-github-mcp-serve
 * https://github.com/debs-obrien
-* https://github.com/microsoft/mcp-for-beginners
 
 -----------
 * https://www.willvelida.com/posts/mcp-servers-dotnet/
