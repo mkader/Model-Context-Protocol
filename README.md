@@ -13,3 +13,4 @@
   * https://dzone.com/articles/creating-ai-agents-using-the-model-context-protocol
   * <a href="https://www.youtube.com/watch?v=zgL4fBABNlw">Build Your First Anthropic MCP Server with .NET | Quick Tutorial - YouTube</a>
   * <a href="https://www.youtube.com/watch?v=4zkIBMFdL2w">Let's Learn MCP: C# - YouTube</a>
+  * Build an MCP Server With C#/.NET SDK: https://github.com/modelcontextprotocol/csharp-sdk
