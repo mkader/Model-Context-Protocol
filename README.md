@@ -1,5 +1,5 @@
 # Model Context Protocol (MCP) 
-  * based on <a href="https://github.com/microsoft/mcp-for-beginners">mcp-for-beginners</a>
+   * based on <a href="https://github.com/microsoft/mcp-for-beginners">mcp-for-beginners</a>
 
 * https://github.com/modelcontextprotocol/servers
 * https://modelcontextprotocol.io/docs/getting-started/intro
