@@ -1,0 +1,23 @@
+{
+   "name": "typescript-advanced",
+   "version": "1.0.0",
+   "main": "./build/app.js",
+   "scripts": {
+      "build": "tsc",
+      "start": "node ./build/app.js",
+      "test": "echo \"Error: no test specified\" && exit 1"
+   },
+   "keywords": [],
+   "author": "",
+   "license": "ISC",
+   "description": "typescript advanced usisng MCP",
+   "dependencies": {
+      "@modelcontextprotocol/sdk": "^1.29.0",
+      "openai": "^6.48.0",
+      "zod-to-json-schema": ""
+   },
+   "devDependencies": {
+      "@types/node": "^26.1.1",
+      "typescript": "^7.0.2"
+   }
+}
