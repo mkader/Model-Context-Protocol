@@ -1,99 +1,37 @@
-### Run sample
+#### Run sample
 
-* Install dependencies ``` npm install ```
-* Build it ``` npm run build ```
-* Run it ``` npm start ```
-    * You should see the text:
-        ```text
-        Registering tools...
-        Starting server...
-        ```
+```
+npm install
+npm run build
+```
 
-### Test the server
+* generate token, token will store in .env ``` npm run generate ```
+  
+   <img width="300" height="150" alt="image" src="https://github.com/user-attachments/assets/385b864e-2dcb-4411-a72f-4c8be90e172a" />
 
-* Test web inspector tool ``` npx @modelcontextprotocol/inspector node build/app.js ```
+* start server ``` npm start ```
+  
+   <img width="150" height="50" alt="image" src="https://github.com/user-attachments/assets/e7c349fa-4add-4395-8255-657b5496a661" />
 
-* Test in CLI mode ``` npx @modelcontextprotocol/inspector --cli node ./build/app.js --method tools/list ```
-    * You should see the following output:
-        ```json
-        {
-        "tools": [
-            {
-            "name": "add",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                "a": {
-                    "type": "number"
-                },
-                "b": {
-                    "type": "number"
-                }
-                },
-                "required": [
-                "a",
-                "b"
-                ],
-                "additionalProperties": false
-            }
-            },
-            {
-            "name": "subtract",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                "a": {
-                    "type": "number"
-                },
-                "b": {
-                    "type": "number"
-                }
-                },
-                "required": [
-                "a",
-                "b"
-                ],
-                "additionalProperties": false
-            }
-            }
-        ]
-        ```
+* start client ``` npm run client ```
+  
+   <img width="250" height="200" alt="image" src="https://github.com/user-attachments/assets/f75c0117-f082-4832-97b5-edb29298c9c4" />
 
-* Run a tool: ``` npx @modelcontextprotocol/inspector --cli node ./build/app.js --method tools/call --tool-name add --tool-arg a=1 --tool-arg b=2 ```
+    * server response
 
-    * You should see a response similar to:
-    ```text
-    {
-    "content": [
-        {
-        "type": "text",
-        "text": "Tool add called with arguments: {\"a\":1,\"b\":2}, result: {\"content\":[{\"type\":\"text\",\"text\":\"3\"}]}"
-        }
-    ]
+      <img width="250" height="350" alt="image" src="https://github.com/user-attachments/assets/d875f210-8fe5-4b88-8e6f-86f148b6d6e4" />
+      <img width="200" height="200" alt="image" src="https://github.com/user-attachments/assets/6abb6995-ffe2-45a8-bdbd-47d682db499a" />
+
+* Change scope in server.ts, change to "User.Write"
+
+    ```
+       if(!hasScopes(token, ["User.Read"])){
+              res.status(403).send('Forbidden - insufficient scopes');
+          }
     ```
 
-* tool "add2" doesn't exist with this command: ``` npx @modelcontextprotocol/inspector --cli node ./build/app.js --method tools/call --tool-name add2 --tool-arg a=1 --tool-arg b= ```
-
-    * You should now see this message showing that your validatiob works:
-
-        ```text
-        {
-        "content": [],
-        "error": {
-            "code": "tool_not_found",
-            "message": "Tool add2 not found."
-        }
+     * Then build and run ``` npm run build npm start ```, see the auth fail. client says
         ```
-
-* sending parameter `c`, rejected by the schema: ``` npx @modelcontextprotocol/inspector --cli node ./build/app.js --method tools/call --tool-name add --tool-arg a=1 --tool-arg c=2 ```
-
-    * You should now see "invalid arguments" error:
-        ```text
-        {
-        "content": [],
-        "error": {
-            "code": "invalid_arguments",
-            "message": "Invalid arguments for tool add: [\n  {\n    \"code\": \"invalid_type\",\n    \"expected\": \"number\",\n    \"received\": \"undefined\",\n    \"path\": [\n      \"b\"\n    ],\n    \"message\": \"Required\"\n  }\n]"
-        }
-        }
+        Error initializing client: Error: Error POSTing to endpoint (HTTP 403): Forbidden - insufficient scopes
         ```
+     * server says ``` Use exists ```
