@@ -1,4 +1,5 @@
 * https://www.youtube.com/watch?v=SVACugFX_hM&t=44s
+* https://lightning.ai/akshay-ddods
 
 ```
 1. compile
