@@ -1,0 +1,7 @@
+# Dependencies for usecase_01/server.py and usecase_01/client.py
+mcp
+qdrant-client
+openai
+llama-index-embeddings-huggingface
+tqdm
+einops
