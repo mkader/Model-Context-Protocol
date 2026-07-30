@@ -15,6 +15,7 @@
       * https://learn.microsoft.com/en-us/samples/azure-samples/remote-mcp-functions-dotnet/remote-mcp-functions-dotnet/
       * https://techcommunity.microsoft.com/blog/appsonazureblog/host-remote-mcp-servers-in-azure-container-apps/4403550
       * MCP Examples refer -  www.dailydoseofds.com & https://lightning.ai/ , https://lightning.ai/akshay-ddods
+      * https://github.com/patchy631/ai-engineering-hub
   -----------
  ### .NetCore MCP Example
   * Dotnet Example - https://www.willvelida.com/posts/mcp-servers-dotnet/
