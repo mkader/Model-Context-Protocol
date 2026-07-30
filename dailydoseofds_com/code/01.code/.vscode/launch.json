@@ -1,0 +1,30 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug: MCP Server (SSE)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/usecase_01/server.py",
+            "args": ["--server_type=sse"],
+            "python": "${workspaceFolder}/.venv/Scripts/python.exe",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Debug: client.py (llama-index)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/usecase_01/client.py",
+            "python": "${workspaceFolder}/.venv/Scripts/python.exe",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Debug: client_openai.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/usecase_01/client_openai.py",
+            "python": "${workspaceFolder}/.venv/Scripts/python.exe",
+            "console": "integratedTerminal"
+        }
+    ]
+}
