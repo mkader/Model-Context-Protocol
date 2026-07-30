@@ -53,47 +53,56 @@
 
 ```mermaid
 sequenceDiagram
-    autonumber
-    actor U as User
-    participant C as Chat Client (VS Code Copilot)
-    participant M as MCP Runtime
-    participant S as mcp-rag-app (server.py)
-    participant R as Router Logic
-    participant T1 as machine_learning_faq_retrieval_tool
-    participant E as EmbedData
-    participant V as Retriever + QdrantVDB
-    participant Q as Qdrant (localhost:6333)
-    participant T2 as bright_data_web_search_tool
-    participant B as Bright Data API
-    participant G as Google Search
-
-    U->>C: Ask question
-    C->>M: Evaluate available MCP tools
-    M->>S: Initialize/handshake (stdio)
-
-    S->>R: Classify query intent
-
-    alt ML-related query
-        R->>T1: Call retrieval tool(query)
-        T1->>E: Create query embedding
-        E-->>T1: query_vector
-        T1->>V: search(query_vector)
-        V->>Q: query_points(collection=ml_faq_collection, limit=3)
-        Q-->>V: top matching points
-        V-->>T1: combined context
-        T1-->>S: ML context response
-        S-->>M: Tool result
-        M-->>C: Return grounded answer
-    else Non-ML query
-        R->>T2: Call web search tool(query)
-        T2->>B: POST /request (zone, url, format=raw, data_format=html)
-        B->>G: Fetch search results
-        G-->>B: Search page/content
-        B-->>T2: HTML/raw payload
-        T2-->>S: list[str] web context
-        S-->>M: Tool result
-        M-->>C: Return fallback web answer
-    end
-
-    C-->>U: Final response
+   autonumber
+   actor U as User
+   participant NB as Jupyter Notebook
+   participant E as EmbedData
+   participant V as QdrantVDB
+   participant Q as Qdrant (localhost:6333)
+   participant S as MCP Server (mcp-rag-app)
+   participant C as Chat Client (VS Code Copilot)
+   participant M as MCP Runtime
+   participant T1 as ML Retrieval Tool
+   participant T2 as Web Search Tool
+   participant B as Bright Data API
+   participant G as Google Search
+   Note over U,NB: Phase 1: Notebook setup and data loading
+   U->>NB: Run notebook cells
+   NB->>NB: Prepare FAQ text chunks
+   NB->>E: Generate embeddings for chunks
+   E-->>NB: Embedding vectors
+   NB->>V: Create collection ml_faq_collection
+   V->>Q: create_collection if missing
+   Q-->>V: Collection ready
+   NB->>V: Ingest vectors + payloads
+   V->>Q: upload_collection in batches
+   Q-->>V: Data stored
+   
+   Note over U,S: Phase 2: Start MCP server
+   U->>S: Start server process
+   S->>M: Register tools and connect
+   
+   Note over U,C: Phase 3: Ask questions in chat
+   U->>C: Ask a question
+   C->>M: Decide tool usage
+   
+   alt ML question
+       M->>T1: machine_learning_faq_retrieval_tool(query)
+       T1->>E: Embed user query
+       E-->>T1: Query vector
+       T1->>Q: query_points top-k
+       Q-->>T1: Matching FAQ contexts
+       T1-->>M: Combined retrieved context
+       M-->>C: Grounded answer
+   else Non-ML question
+       M->>T2: bright_data_web_search_tool(query)
+       T2->>B: POST request
+       B->>G: Fetch search result page
+       G-->>B: HTML results
+       B-->>T2: Raw response
+       T2-->>M: Web fallback context
+       M-->>C: Fallback answer
+   end
+   
+   C-->>U: Final response
 ```
