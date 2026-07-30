@@ -6,3 +6,4 @@ llama-index-tools-mcp
 llama-index-llms-ollama
 ollama
 starlette>=0.37.2,<0.39
+openai
