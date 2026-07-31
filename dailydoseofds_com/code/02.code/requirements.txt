@@ -4,4 +4,3 @@ qdrant-client
 openai
 llama-index-embeddings-huggingface
 tqdm
-einops
