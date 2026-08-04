@@ -22,12 +22,15 @@
   <img width="1023" height="357" alt="image" src="https://github.com/user-attachments/assets/a7ffcc8b-2f54-4df1-951d-45947a861c8a" />
 
 4. Running
-    - ```bash python agent.py console``` - speak through vsc.
+    - ``` python agent.py console``` - speak through vsc.
     - The agent will:
       1. Connect to LiveKit
       2. Initialize the MCP server for Supabase integration
       3. Set up voice interaction capabilities
       4. Start listening for user input
+
+    <img width="1251" height="690" alt="image" src="https://github.com/user-attachments/assets/be74dd75-bf4c-41db-9dc0-c3b0c843bbec" />
+
 
 6. Features
     - Real-time web search using Firecrawl
