@@ -27,4 +27,7 @@
 ### Community Driven
 * Awesome MCP Servers - https://github.com/wong2/awesome-mcp-servers
 * MCP Resources  - https://www.pulsemcp.com/servers
-* Free MCP Servers - https://www.remoteopenclaw.com/
+* Free MCP Servers - https://www.remoteopenclaw.com
+----------------------
+### POC
+* AI Interview  - https://docs.livekit.io/agents/
