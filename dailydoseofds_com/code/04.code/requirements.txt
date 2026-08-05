@@ -5,3 +5,5 @@ livekit-plugins-silero
 python-dotenv
 pydantic-ai-slim[openai,mcp]
 firecrawl-py
+requests
+livekit-agents[anam]
