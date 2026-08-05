@@ -1,4 +1,5 @@
 """
+Code is working 
 MCP voice agent that routes queries either to Firecrawl web search or to Supabase via MCP.
 """
 
@@ -14,21 +15,22 @@ from typing import Any, Callable, List, Optional
 import inspect
 from dotenv import load_dotenv
 from firecrawl import FirecrawlApp, V1ScrapeOptions
-#from pydantic_ai.mcp import MCPServerStdio
 
 from livekit.agents import (
     Agent,
     AgentSession,
     JobContext,
     RunContext,
+    TurnHandlingOptions,
     WorkerOptions,
     mcp,
     cli,
     inference,
+    room_io,
     function_tool,
 )
 
-from livekit.plugins import assemblyai, openai, silero
+from livekit.plugins import assemblyai, openai, silero, ai_coustics
 
 # ------------------------------------------------------------------------------
 # Configuration & Logging
@@ -74,7 +76,6 @@ def _py_type(schema: dict) -> Any:
 
     return Any
 
-
 def schema_to_google_docstring(description: str, schema: dict) -> str:
     """
     Generate a Google-style docstring section from a JSON schema.
@@ -104,7 +105,6 @@ def schema_to_google_docstring(description: str, schema: dict) -> str:
         lines.append(f"    {name} ({py_type}): {desc}")
 
     return "\n".join(lines)
-
 
 @function_tool
 async def firecrawl_search(
@@ -196,16 +196,35 @@ async def build_livekit_tools(server: mcp.MCPServerStdio) -> List[Callable]:
                     if (p_type == "array" or (isinstance(p_type, list) and "array" in p_type)) and v is None:
                         kwargs[k] = []
 
-                # Execute call against the server with extracted string name
-                response = await server.call_tool(t_name, arguments=kwargs or None)
+                # Execute call against MCP server. Newer LiveKit stores call_tool on _client.
+                call_args = kwargs or {}
+                if hasattr(server, "call_tool"):
+                    response = await server.call_tool(t_name, arguments=call_args)
+                else:
+                    if getattr(server, "_client", None) is None:
+                        raise RuntimeError("MCP client is not initialized")
+                    response = await server._client.call_tool(t_name, call_args)
+
                 if isinstance(response, list):
                     return response
+
+                if hasattr(response, "isError") and response.isError:
+                    error_text = "\n".join(
+                        part.text if hasattr(part, "text") else str(part)
+                        for part in (response.content or [])
+                    )
+                    raise RuntimeError(error_text or f"MCP tool '{t_name}' failed")
+
                 if hasattr(response, "content") and response.content:
-                    text = response.content.text
-                    try:
-                        return json.loads(text)
-                    except json.JSONDecodeError:
-                        return text
+                    parts = response.content
+                    if len(parts) == 1 and hasattr(parts[0], "text"):
+                        text = parts[0].text
+                        try:
+                            return json.loads(text)
+                        except json.JSONDecodeError:
+                            return text
+                    return [part.text if hasattr(part, "text") else str(part) for part in parts]
+
                 return response
 
             params = [inspect.Parameter("context", inspect.Parameter.POSITIONAL_OR_KEYWORD, annotation=RunContext)]
@@ -225,7 +244,6 @@ async def build_livekit_tools(server: mcp.MCPServerStdio) -> List[Callable]:
         tools.append(make_proxy())
 
     return tools
-
 
 async def entrypoint(ctx: JobContext) -> None:
     """
@@ -247,7 +265,8 @@ async def entrypoint(ctx: JobContext) -> None:
         await server_config.initialize()
 
         supabase_tools = await build_livekit_tools(server_config)
-        tools = [firecrawl_search] + supabase_tools
+        #tools = [firecrawl_search] + supabase_tools
+        tools = supabase_tools
 
         agent = Agent(
             instructions=(
@@ -259,17 +278,6 @@ async def entrypoint(ctx: JobContext) -> None:
             tools=tools,
         )
 
-        '''
-        session = AgentSession(
-            vad=silero.VAD.load(min_silence_duration=0.1),
-            stt=assemblyai.STT(word_boost=["Supabase"]),
-            llm=openai.LLM(model="gpt-4o"),
-            tts=openai.TTS(voice="ash"),
-        )
-        '''
-
-        #Literal['universal-streaming-english', 'universal-streaming-multilingual', 'u3-rt-pro', 'u3-rt-pro-beta-1', 'u3-pro', 'universal-3-5-pro'] = "universal-3-5-pro",
-
         # Set up a voice AI pipeline using OpenAI, Cartesia, Deepgram, and the LiveKit turn detector
         session = AgentSession(
             #Keep min_silence_duration=0.1 only if you disable TurnDetector behavior:
@@ -279,20 +287,43 @@ async def entrypoint(ctx: JobContext) -> None:
 
             # Speech-to-text (STT) is your agent's ears, turning the user's speech into text that the LLM can understand
             # See all available models at https://docs.livekit.io/agents/models/stt/
-            #stt=assemblyai.STT(word_boost=["Supabase"]),
-            stt=inference.STT(model="deepgram/nova-3", language="multi"),
+            # Use Azure OpenAI STT directly to avoid LiveKit Inference rate limits.
+            #stt=assemblyai.STT(keyterms_prompt=["Supabase"]),
+            #stt=inference.STT(model="deepgram/nova-3", language="multi"), #working
+            # Use Azure OpenAI, below code working
+            stt=openai.STT.with_azure(
+                model=os.getenv("AZURE_OPENAI_STT_MODEL"),
+                azure_deployment=os.getenv("AZURE_OPENAI_STT_DEPLOYMENT"),
+                azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT_STT"),
+                api_key=os.getenv("AZURE_OPENAI_API_KEY"),
+                api_version=os.getenv("AZURE_OPENAI_STT_API_VERSION", "2025-03-01-preview"),
+            ),
 
             # A Large Language Model (LLM) is your agent's brain, processing user input and generating a response
             # See all available models at https://docs.livekit.io/agents/models/llm/
             #llm=openai.LLM(model="gpt-4o"),
-            llm=inference.LLM(model="google/gemma-4-31b-it"),
+            #llm=inference.LLM(model="google/gemma-4-31b-it"),  #inference_quota_exceeded, it's working
+            # Use Azure OpenAI, below code working
+            llm=openai.LLM(
+                model=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME_LLM"),
+                api_key=os.getenv("AZURE_OPENAI_API_KEY"),
+                base_url=os.getenv("AZURE_OPENAI_ENDPOINT_LLM"),
+            ),
 
             # Text-to-speech (TTS) is your agent's voice, turning the LLM's text into speech that the user can hear
             # See all available models as well as voice selections at https://docs.livekit.io/agents/models/tts/
             #tts=openai.TTS(voice="ash"),
-            tts=inference.TTS(
-                model="cartesia/sonic-3", voice="9626c31c-bec5-4cca-baa8-f8ba9e84c8bc"
+            #tts=inference.TTS(model="cartesia/sonic-3", voice="9626c31c-bec5-4cca-baa8-f8ba9e84c8bc"), #working good
+            # Use Azure OpenAI, below code working
+            tts=openai.TTS.with_azure(
+                azure_deployment=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME_TTS"),
+                model=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME_TTS"),
+                voice=os.getenv("AZURE_OPENAI_TTS_VOICE", "alloy"),
+                azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT_TTS"),
+                api_key=os.getenv("AZURE_OPENAI_API_KEY"),
+                api_version=os.getenv("AZURE_OPENAI_TTS_API_VERSION", "2025-03-01-preview"),
             ),
+            
             # To use a realtime model instead of a voice pipeline, replace the LLM
             # with a RealtimeModel and remove the STT/TTS from the AgentSession
             # (Note: This is for the OpenAI Realtime API. For other providers, see https://docs.livekit.io/agents/models/realtime/)
@@ -301,11 +332,44 @@ async def entrypoint(ctx: JobContext) -> None:
             # 3. Add `from livekit.plugins import openai` to the top of this file
             # 4. Replace the llm argument with:
             #     llm=openai.realtime.RealtimeModel(voice="marin")
+    
+            # The LiveKit turn detector determines when the user is done speaking and the agent should respond.
+            # TurnDetector is an end-of-turn model that listens to the user's audio directly, combining
+            # semantic understanding with acoustic cues (intonation, pitch, rhythm) for state-of-the-art accuracy.
+            # AgentSession supplies the required VAD automatically.
+            # See more at https://docs.livekit.io/agents/build/turns
+            turn_handling=TurnHandlingOptions(
+                turn_detection=inference.TurnDetector(),
+            ),
+            # allow the LLM to generate a response while waiting for the end of turn
+            # See more at https://docs.livekit.io/agents/build/audio/#preemptive-generation
+            #preemptive_generation=True,
         )
         
 
-        await session.start(agent=agent, room=ctx.room)
+        await session.start(
+            agent=agent, 
+            room=ctx.room,
+            room_options=room_io.RoomOptions(
+                audio_input=room_io.AudioInputOptions(
+                    noise_cancellation=ai_coustics.audio_enhancement(
+                        model=ai_coustics.EnhancerModel.QUAIL_VF_S
+                    ),
+                ),
+            ),
+        )
         await session.generate_reply(instructions="Hello! How can I assist MAK today?")
+
+        # # Add a virtual avatar to the session, if desired
+        # # For other providers, see https://docs.livekit.io/agents/models/avatar/
+        # avatar = anam.AvatarSession(
+        #     persona_config=anam.PersonaConfig(
+        #         name="...",
+        #         avatarId="...",  # See https://docs.livekit.io/agents/models/avatar/plugins/anam
+        #     ),
+        # )
+        # # Start the avatar and wait for it to join
+        # await avatar.start(session, room=ctx.room)
 
         # Keep the session alive until cancelled
         try:
