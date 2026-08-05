@@ -31,6 +31,11 @@
 
     <img width="1251" height="690" alt="image" src="https://github.com/user-attachments/assets/be74dd75-bf4c-41db-9dc0-c3b0c843bbec" />
 
+    - inference quota exceeded, use openai llm
+
+     <img width="1262" height="458" alt="image" src="https://github.com/user-attachments/assets/a31aaaa3-9ffa-474e-8e5d-a31561383978" />
+
+
 
 6. Features
     - Real-time web search using Firecrawl
