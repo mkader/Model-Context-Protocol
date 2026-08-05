@@ -1,4 +1,5 @@
 * https://docs.livekit.io/agents/
+* https://lab.anam.ai/api-keys - avatar
 1. install ``` python -m pip install -r requirements.txt ```
 2. Implementation: agent.py - This implementation uses AssemblyAI's services for speech-to-text, along with Firecrawl for web search and Supabase for database operations.
   - Requirements
