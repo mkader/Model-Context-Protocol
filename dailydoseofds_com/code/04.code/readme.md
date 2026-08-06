@@ -36,8 +36,6 @@
 
      <img width="1262" height="458" alt="image" src="https://github.com/user-attachments/assets/a31aaaa3-9ffa-474e-8e5d-a31561383978" />
 
-
-
 6. Features
     - Real-time web search using Firecrawl
     - Supabase database integration via MCP
@@ -46,3 +44,54 @@
       - AssemblyAI Speech-to-Text
       - OpenAI GPT-4 for language processing
       - OpenAI TTS for text-to-speech
+     
+* Difference between assemblyai & inference
+  - Short answer: they use different backends and billing paths.
+  - assemblyai.STT(...)
+      - Sends audio directly to AssemblyAI.
+      - You pay/use your AssemblyAI account and API key.
+      - You get AssemblyAI-specific features and params (like keyterms_prompt).
+      - Behavior, accuracy tuning, and limits follow AssemblyAI.
+  - inference.STT(model="deepgram/nova-3", language="multi")
+      - Sends audio through LiveKit Inference, which routes to the provider model (here Deepgram Nova-3).
+      - You use LiveKit Inference quota/billing (not direct provider credentials in this call style).
+      - Easier unified setup across providers, but you can hit LiveKit Inference quota/rate limits.
+      - Provider-specific knobs may be less direct than using provider SDK/plugin directly.
+
+```mermaid     
+sequenceDiagram
+    autonumber
+    participant U as User
+    participant LK as LiveKit Room
+    participant A as AgentSession
+    participant STT as Azure OpenAI STT
+    participant LLM as Azure OpenAI LLM
+    participant MCP as Supabase MCP Server
+    participant TTS as Azure OpenAI TTS
+    participant AV as Anam Avatar
+
+    Note over A,AV: Avatar starts before session.start when configured
+
+    U->>LK: Join room and speak
+    LK->>A: Audio input stream
+    A->>STT: Transcribe audio
+    STT-->>A: User text
+
+    A->>LLM: Send user text + instructions
+    alt LLM decides tool call
+        LLM-->>A: Tool request
+        A->>MCP: Execute tool (e.g., list_projects)
+        MCP-->>A: Tool result
+        A->>LLM: Tool result context
+        LLM-->>A: Final response text
+    else No tool needed
+        LLM-->>A: Direct response text
+    end
+
+    A->>TTS: Synthesize reply audio
+    TTS-->>A: Audio chunks
+    A-->>LK: Publish assistant audio
+    AV-->>LK: Publish lip-synced avatar video/audio
+
+    LK-->>U: User hears reply and sees avatar speaking
+```
