@@ -1,5 +1,5 @@
 """
-Code is working 
+code is working
 MCP voice agent that routes queries either to Firecrawl web search or to Supabase via MCP.
 """
 
@@ -30,7 +30,7 @@ from livekit.agents import (
     function_tool,
 )
 
-from livekit.plugins import assemblyai, openai, silero, ai_coustics
+from livekit.plugins import assemblyai, openai, silero, ai_coustics, anam
 
 # ------------------------------------------------------------------------------
 # Configuration & Logging
@@ -41,6 +41,11 @@ logger = logging.getLogger(__name__)
 
 FIRECRAWL_API_KEY = os.getenv("FIRECRAWL_API_KEY")
 SUPABASE_TOKEN = os.getenv("SUPABASE_ACCESS_TOKEN")
+ANAM_API_KEY = os.getenv("ANAM_API_KEY")
+ANAM_AVATAR_ID = os.getenv("ANAM_AVATAR_ID")
+ANAM_AVATAR_ID_NAME = os.getenv("ANAM_AVATAR_ID_NAME")
+MAK_AVATAR_NAME = os.getenv("MAK_AVATAR_NAME")
+ANAM_AVATAR_MODEL_NAME = os.getenv("ANAM_AVATAR_MODEL_NAME")
 
 if not FIRECRAWL_API_KEY:
     logger.error("FIRECRAWL_API_KEY is not set in environment.")
@@ -160,7 +165,7 @@ async def build_livekit_tools(server: mcp.MCPServerStdio) -> List[Callable]:
 
     for td in all_tools:
         tool_name = td.info.name
-        logger.info("Building tool proxy for: %s", tool_name)
+        #logger.info("Building tool proxy for: %s", tool_name)
         if tool_name == "deploy_edge_function":
             logger.warning("Skipping tool %s", tool_name)
             continue
@@ -345,7 +350,24 @@ async def entrypoint(ctx: JobContext) -> None:
             # See more at https://docs.livekit.io/agents/build/audio/#preemptive-generation
             #preemptive_generation=True,
         )
-        
+ 
+        # Add a virtual avatar to the session, if desired.
+        # For other providers, see https://docs.livekit.io/agents/models/avatar/
+        # Set ANAM_AVATAR_ID (required) and ANAM_API_KEY (recommended) in .env.
+        # https://anam.ai/docs/personas/avatars/gallery - get avatarId and avatarModel for your avatar.
+        avatar = anam.AvatarSession(
+            persona_config=anam.PersonaConfig(
+                name=MAK_AVATAR_NAME,
+                avatarId=ANAM_AVATAR_ID,  # See https://docs.livekit.io/agents/models/avatar/plugins/anam
+                avatarModel=ANAM_AVATAR_MODEL_NAME,
+            ),
+            api_key=ANAM_API_KEY,
+            #api_url=os.getenv("ANAM_API_URL", "https://api.anam.ai"),
+        )
+        # Start the avatar and wait for it to join.
+        await avatar.start(session, room=ctx.room)
+    
+     
 
         await session.start(
             agent=agent, 
@@ -358,19 +380,9 @@ async def entrypoint(ctx: JobContext) -> None:
                 ),
             ),
         )
+        
         await session.generate_reply(instructions="Hello! How can I assist MAK today?")
-
-        # # Add a virtual avatar to the session, if desired
-        # # For other providers, see https://docs.livekit.io/agents/models/avatar/
-        # avatar = anam.AvatarSession(
-        #     persona_config=anam.PersonaConfig(
-        #         name="...",
-        #         avatarId="...",  # See https://docs.livekit.io/agents/models/avatar/plugins/anam
-        #     ),
-        # )
-        # # Start the avatar and wait for it to join
-        # await avatar.start(session, room=ctx.room)
-
+     
         # Keep the session alive until cancelled
         try:
             while True:
