@@ -30,4 +30,4 @@
 * Free MCP Servers - https://www.remoteopenclaw.com
 ----------------------
 ### POC
-* AI Interview  - https://docs.livekit.io/agents/
+* AI Interview  - https://docs.livekit.io/agents/ , https://learn.microsoft.com/en-us/azure/ai-services/speech-service/voice-live, https://anam.ai/, https://elevenlabs.io/
