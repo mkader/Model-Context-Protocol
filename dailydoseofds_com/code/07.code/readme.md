@@ -64,3 +64,28 @@
 
     <img width="1332" height="522" alt="image" src="https://github.com/user-attachments/assets/c9a1f3e8-1fd3-4258-8386-4c88bbf4b0eb" />
 
+```mermaid
+sequenceDiagram
+    autonumber
+    participant U as User
+    participant C as Copilot
+    participant M as usecase_07_mcp_app
+    participant G as GroundX
+    participant B as Bucket 31823
+
+    U->>C: Send deepstack.pdf and ask for summary
+    C->>M: ingest_documents(local_file_path=".../deepstack.pdf")
+    M->>G: ingest(Document(bucket_id=31823, file_type="pdf"))
+    G->>B: Store and index PDF
+    G-->>M: Ingestion accepted
+    M-->>C: "Document ingested (available shortly)"
+
+    C->>M: search_doc_for_rag_context(query="Unsuccessful attempts summary")
+    M->>G: search.content(id=31823, n=10, query)
+    G-->>M: Top matching excerpts
+    M-->>C: Retrieved context text
+
+    C->>C: Extract failed approaches and reasons
+    C-->>U: Short summary result
+```
+
