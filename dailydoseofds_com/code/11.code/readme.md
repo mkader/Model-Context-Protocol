@@ -35,6 +35,10 @@ streamlit run app.py
     }
 }
 ```
+
+<img width="1483" height="912" alt="image" src="https://github.com/user-attachments/assets/f0b57f74-6b24-45d7-97e1-20a864e32611" />
+
+
 ```mermaid
 sequenceDiagram
     autonumber
