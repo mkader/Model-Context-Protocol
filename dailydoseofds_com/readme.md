@@ -1,4 +1,5 @@
 * https://github.com/patchy631 - AI, ML...
+* https://www.dailydoseofds.com/archive/
 
 | | OpenAI |	Ollama |
 |-|-|-|
