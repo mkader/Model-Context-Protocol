@@ -1,0 +1,8 @@
+crewai
+linkup-sdk
+linkup
+mcp
+openai
+python-dotenv
+streamlit
+mcp[cli]
