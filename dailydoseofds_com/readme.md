@@ -1,3 +1,5 @@
+* https://github.com/patchy631 - AI, ML...
+
 | | OpenAI |	Ollama |
 |-|-|-|
 | Hosting	| Cloud (OpenAI/Azure servers)	| Local (runs on your machine) |
