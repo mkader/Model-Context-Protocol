@@ -19,9 +19,13 @@ npm start
         },
         "inputs": []
     }
-   Make sure a chat window is open and type `get-faq`, you should see a result like so:
-   ```
-    - Choice -2- Test the app with a host
+   ``` 
+   - Make sure a chat window is open and type `get-faq`, you should see a result like so:
+        <img width="435" height="733" alt="image" src="https://github.com/user-attachments/assets/856e0299-c680-441b-9253-3cf577755503" />
+
+        <img width="367" height="727" alt="image" src="https://github.com/user-attachments/assets/4ebd9d49-5444-49df-a6e8-4b0d8003600d" />
+
+   - Choice -2- Test the app with a host
         - The repo <https://github.com/modelcontextprotocol/ext-apps> contains several different hosts that you can use to test your MVP Apps. 
 ```
   # Local machine
